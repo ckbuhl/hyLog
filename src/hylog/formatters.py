@@ -1,7 +1,9 @@
 import datetime as dt
 import json
 import logging
+
 from typing import override
+
 
 LOG_RECORD_BUILTIN_ATTRS = {
     "args",
@@ -30,7 +32,23 @@ LOG_RECORD_BUILTIN_ATTRS = {
 }
 
 
-class JSONFormatter(logging.Formatter):
+class Simple(logging.Formatter):
+    _fmt: str = "%(asctime)s - [%(levelname)-8s] %(module)s:%(lineno)03d | %(message)s"
+    _datefmt: str = "T%H:%M:%S"
+
+    def __init__(self) -> None:
+        super().__init__(fmt=self._fmt, datefmt=self._datefmt)
+
+
+class Detailed(logging.Formatter):
+    _fmt: str = "%(asctime)s [%(levelname)-8s] %(module)s %(pathname)s:%(lineno)03d | %(message)s"
+    _datefmt: str = "%Y-%m-%dT%H:%M:%S"
+
+    def __init__(self) -> None:
+        super().__init__(fmt=self._fmt, datefmt=self._datefmt)
+
+
+class JSON(logging.Formatter):
     def __init__(
         self,
         *,

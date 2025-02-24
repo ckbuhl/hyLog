@@ -25,24 +25,24 @@
     }
   },
   "handlers": {
-    "stderr": {
+    "stdout": {
       "class": "logging.StreamHandler",
       "formatter": "simple",
       "level": "WARNING",
       "stream": "ext://sys.stderr"
     },
-    "file_current": {
+    "file_last": {
       "class": "logging.FileHandler",
       "level": "DEBUG",
       "formatter": "detailed",
-      "filename": "logs/app_name_current.log",
+      "filename": "logs/last.log",
       "mode": "w"
     },
-    "file_historical": {
+    "file_rotating": {
       "class": "logging.handlers.RotatingFileHandler",
       "level": "DEBUG",
       "formatter": "detailed",
-      "filename": "logs/app_name_history.log",
+      "filename": "logs/rotating.log",
       "maxBytes": 3000000,
       "backupCount": 3
     },
@@ -50,13 +50,13 @@
       "class": "logging.handlers.RotatingFileHandler",
       "level": "DEBUG",
       "formatter": "json",
-      "filename": "logs/app_name.log.jsonl",
+      "filename": "logs/json_log.jsonl",
       "maxBytes": 3000000,
       "backupCount": 3
     },
     "queue_handler": {
       "class": "logging.handlers.QueueHandler",
-      "handlers": ["stderr", "file_historical", "file_current", "json"],
+      "handlers": ["stdout", "file_rotating", "file_last", "json"],
       "respect_handler_level": true
     }
   },

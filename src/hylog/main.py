@@ -1,53 +1,65 @@
 import atexit
-import json
-import logging.handlers
-import logging.config
-import pathlib
 import datetime as dt
+import json
+import logging.config
+import logging.handlers
+from pathlib import Path
 
+class _LoggerMetadata:
+    config_path: Path = Path(__file__).parent / "configs" / "default.json"
+    name: str = str(Path().cwd().parent)
+    output_dir: Path = Path().cwd() / "logs"
 
-log = logging.getLogger("hyLog")
+    formatters: set[str] = set()
+    file_handlers: set[str] = set()
 
-def log_final_message() -> None:
-    log.debug(f"Complete...{"\n"*2}")
-
-
-def setup_logging(config_path: pathlib.Path | str) -> None:
-    config_file_path = pathlib.Path(config_path)
-    if not config_file_path.exists():
-        raise FileNotFoundError(f"Config file not found: {config_file_path}")
-
-    with open(config_file_path, "r") as f:
-        config = json.load(f)
+def _configure_from_defaults() -> None:
+    with open(_LoggerMetadata.config_path, "r") as f:
+        config: dict[str, str] = json.load(f)
 
     logging.config.dictConfig(config)
+    
+    _LoggerMetadata.file_handlers = set(file_handlers)
 
-    # Setup thread-safe logging.
+    # Setup thread-safe logging using the QueueHandler.
     queue_handler = logging.getHandlerByName("queue_handler")
     if isinstance(queue_handler, logging.handlers.QueueHandler):
         queue_handler.listener.start()  # type: ignore
         atexit.register(queue_handler.listener.stop)  # type: ignore
-        atexit.register(log_final_message)
 
-    log.debug("-"*80)
-    log.debug(f"Logging setup complete: {dt.datetime.now()}")
+def _set_logger_name(name: str | None) -> None:
+    if name is not None:
+        _LoggerMetadata.name = name
+    else:
+        _LoggerMetadata.name = str(Path().cwd().parent)
+
+
+def _set_output_dir(output_dir: str | Path | None) -> None:
+    if output_dir is not None and Path.is_dir(Path(output_dir)):
+        _LoggerMetadata.output_dir = Path(output_dir)
+
+    else:
+
+
+def _set_stdout_level(level: str) -> None:
+    stream_handler = logging.getHandlerByName("stdout")
+    if stream_handler is not None:
+        stream_handler.setLevel(level)
+
+
+
+def get_app_logger(name: str | None, stdout_level: str | None = None, output_dir: str | Path | None = None) -> logging.Logger:
+    _configure_from_defaults()
+    _set_logger_name(name)
+    _set_output_dir(output_dir)
+
+
+
+    if stdout_level is not None:
+        _set_stdout_level(stdout_level)
 
 
 
 
-if __name__ == "__main__":
-    config_path = pathlib.Path(__file__).parent/ "configs" / "stderr-json-file.json"
-    setup_logging(config_path)
 
-    log.debug("DEBUG message")
-    log.debug("DEBUG message with extra", extra={"extra_key": "extra_value"})
-    log.info("INFO message")
-    log.warning("WARNING message")
-    log.error("ERROR message")
-    log.critical("CRITICAL message")
-
-    try:
-        1 / 0
-
-    except ZeroDivisionError as e:
-        log.exception("Exception occurred", exc_info=e)
+    return logging.getLogger(name)
