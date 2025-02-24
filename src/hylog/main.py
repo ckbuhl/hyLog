@@ -1,11 +1,15 @@
 import atexit
 import json
-import logging.config
 import logging.handlers
+import logging.config
 import pathlib
+import datetime as dt
+
 
 log = logging.getLogger("hyLog")
 
+def log_final_message() -> None:
+    log.debug(f"Complete...{"\n"*2}")
 
 
 def setup_logging(config_path: pathlib.Path | str) -> None:
@@ -23,6 +27,11 @@ def setup_logging(config_path: pathlib.Path | str) -> None:
     if isinstance(queue_handler, logging.handlers.QueueHandler):
         queue_handler.listener.start()  # type: ignore
         atexit.register(queue_handler.listener.stop)  # type: ignore
+        atexit.register(log_final_message)
+
+    log.debug("-"*80)
+    log.debug(f"Logging setup complete: {dt.datetime.now()}")
+
 
 
 

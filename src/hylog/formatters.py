@@ -3,7 +3,6 @@ import json
 import logging
 from typing import override
 
-
 LOG_RECORD_BUILTIN_ATTRS = {
     "args",
     "asctime",
@@ -30,7 +29,6 @@ LOG_RECORD_BUILTIN_ATTRS = {
     "taskName",
 }
 
-    #   "format": "%(asctime)s - [%(levelname)s] %(pathname)s:%(lineno)d | %(message)s",
 
 class JSONFormatter(logging.Formatter):
     def __init__(

@@ -3,11 +3,11 @@
   "disable_existing_loggers": false,
   "formatters": {
     "simple": {
-      "format": "%(asctime)s - [%(levelname)s] %(module)s:%(lineno)d | %(message)s",
-      "datefmt": "%Y-%m-%dT%H:%M:%S"
+      "format": "%(asctime)s - [%(levelname)-8s] %(module)s:%(lineno)03d | %(message)s",
+      "datefmt": "T%H:%M:%S"
     },
     "detailed": {
-      "format": " %(asctime)s [%(levelname)s] %(pathname)s:%(lineno)d | %(message)s",
+      "format": "%(asctime)s [%(levelname)-8s] %(module)s %(pathname)s:%(lineno)03d | %(message)s",
       "datefmt": "%Y-%m-%dT%H:%M:%S%z"
     },
     "json": {
@@ -31,11 +31,18 @@
       "level": "WARNING",
       "stream": "ext://sys.stderr"
     },
-    "file": {
+    "file_current": {
+      "class": "logging.FileHandler",
+      "level": "DEBUG",
+      "formatter": "detailed",
+      "filename": "logs/app_name_current.log",
+      "mode": "w"
+    },
+    "file_historical": {
       "class": "logging.handlers.RotatingFileHandler",
       "level": "DEBUG",
       "formatter": "detailed",
-      "filename": "logs/my_app.log",
+      "filename": "logs/app_name_history.log",
       "maxBytes": 3000000,
       "backupCount": 3
     },
@@ -43,13 +50,13 @@
       "class": "logging.handlers.RotatingFileHandler",
       "level": "DEBUG",
       "formatter": "json",
-      "filename": "logs/my_app.log.jsonl",
+      "filename": "logs/app_name.log.jsonl",
       "maxBytes": 3000000,
       "backupCount": 3
     },
     "queue_handler": {
       "class": "logging.handlers.QueueHandler",
-      "handlers": ["stderr", "file", "json"],
+      "handlers": ["stderr", "file_historical", "file_current", "json"],
       "respect_handler_level": true
     }
   },
