@@ -20,6 +20,8 @@ def _setup_handlers(
     logger.setLevel(logging.DEBUG)
 
     stream_handler = handlers.StandardOutput()
+    if stdout_level:
+        stream_handler.setLevel(getattr(logging, stdout_level.upper()))
     file_last_handler = handlers.FileLastRun(output_dir / f"{name}_last.log")
     file_rotating_handler = handlers.FileRotating(output_dir / f"{name}_rotating.log")
     json_handler = handlers.JSONHandler(output_dir / f"{name}_json.jsonl")

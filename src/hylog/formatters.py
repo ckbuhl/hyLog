@@ -42,7 +42,7 @@ class Simple(logging.Formatter):
 
 
 class Detailed(logging.Formatter):
-    _fmt: str = "%(asctime)s [%(levelname)-8s] %(module)s %(pathname)s:%(lineno)03d | %(message)s"
+    _fmt: str = "%(asctime)s [%(levelname)-8s]  %(pathname)s:%(lineno)03d %(module)s %(funcName)s | %(message)s"
     _datefmt: str = "%Y-%m-%dT%H:%M:%S"
 
     def __init__(self) -> None:
