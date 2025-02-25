@@ -1,8 +1,9 @@
 from pathlib import Path
 
-from hylog import get_app_level_logger
+from hylog import get_app_logger
 
-log = get_app_level_logger(__name__)
+
+log = get_app_logger()
 
 if __name__ == "__main__":
     log.debug("DEBUG message")

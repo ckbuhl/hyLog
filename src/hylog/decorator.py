@@ -14,16 +14,13 @@ from typing import ClassVar
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+
 def get_debug_decorator(
     logger: logging.Logger, log_level: str | None = None
 ) -> Callable[..., Any]:
     # Set the level to the log_level if it exists otherwise use the logger.getLevelName
     # to retrieve the corresponding int value for the log level
-    if log_level:
-        level = getattr(logger, log_level.upper())
-    else:
-        level = logger.level
-
+    level = getattr(logger, log_level.upper()) if log_level else logger.level
 
     def decorator(func: Callable[..., Any]) -> Any:
         """Print the function signature and return value"""
@@ -43,6 +40,7 @@ def get_debug_decorator(
         return wrapper_debug
 
     return decorator
+
 
 def get_perf_timer_decorator(
     logger: logging.Logger, log_level: str | None = None
