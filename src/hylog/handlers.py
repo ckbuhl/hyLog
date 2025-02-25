@@ -1,8 +1,20 @@
 import logging.handlers
+import sys
 
+from multiprocessing import Queue
 from pathlib import Path
 
 from hylog import formatters
+
+
+class QueueHandler(logging.handlers.QueueHandler):
+    def __init__(self, queue: Queue) -> None:
+        super().__init__(queue)
+
+
+class QueueListener(logging.handlers.QueueListener):
+    def __init__(self, queue,  *handlers: logging.Handler) -> None:
+        super().__init__(queue, *handlers, respect_handler_level=True)
 
 
 class FileLastRun(logging.FileHandler):
@@ -14,8 +26,6 @@ class FileLastRun(logging.FileHandler):
         super().__init__(filename, mode=self._mode)
         self.setLevel(self._level)
         self.setFormatter(self._formatter)
-
-
 
 
 class FileRotating(logging.handlers.RotatingFileHandler):
@@ -45,3 +55,13 @@ class JSONHandler(logging.handlers.RotatingFileHandler):
         )
         self.setLevel(self._level)
         self.setFormatter(self._formatter)
+
+
+class StandardOutput(logging.StreamHandler):
+    _formatter: logging.Formatter = formatters.Simple()
+    _level: int = logging.WARNING
+
+    def __init__(self) -> None:
+        super().__init__(stream=sys.stdout)
+        self.setFormatter(self._formatter)
+        self.setLevel(self._level)

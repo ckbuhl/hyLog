@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import logging
 
+from typing import ClassVar
 from typing import override
 
 
@@ -49,13 +50,24 @@ class Detailed(logging.Formatter):
 
 
 class JSON(logging.Formatter):
+    _fmt_keys: ClassVar[dict[str, str]] = {
+        "level": "levelname",
+        "message": "message",
+        "timestamp": "timestamp",
+        "logger": "name",
+        "module": "module",
+        "function": "funcName",
+        "line": "lineno",
+        "thread_name": "threadName",
+    }
+
     def __init__(
         self,
         *,
         fmt_keys: dict[str, str] | None = None,
     ) -> None:
         super().__init__()
-        self.fmt_keys = fmt_keys if fmt_keys is not None else {}
+        self.fmt_keys = fmt_keys if fmt_keys is not None else self._fmt_keys
 
     @override
     def format(self, record: logging.LogRecord) -> str:

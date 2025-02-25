@@ -3,7 +3,7 @@ from pathlib import Path
 from hylog import get_app_logger
 
 
-log = get_app_logger()
+log = get_app_logger("app", Path(__file__).parent / "logs")
 
 if __name__ == "__main__":
     log.debug("DEBUG message")
