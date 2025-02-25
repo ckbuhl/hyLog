@@ -88,6 +88,8 @@ force-single-line = true
 lines-after-imports = 2
 lines-between-types = 1
 
+
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
