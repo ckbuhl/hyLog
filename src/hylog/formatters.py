@@ -3,7 +3,6 @@ import json
 import logging
 
 from typing import ClassVar
-from typing import override
 
 
 LOG_RECORD_BUILTIN_ATTRS = {
@@ -69,7 +68,6 @@ class JSON(logging.Formatter):
         super().__init__()
         self.fmt_keys = fmt_keys if fmt_keys is not None else self._fmt_keys
 
-    @override
     def format(self, record: logging.LogRecord) -> str:
         message = self._prepare_log_dict(record)
         return json.dumps(message, default=str)
@@ -78,7 +76,7 @@ class JSON(logging.Formatter):
         always_fields = {
             "message": record.getMessage(),
             "timestamp": dt.datetime.fromtimestamp(
-                record.created, tz=dt.UTC
+                record.created, tz=dt.timezone.utc
             ).isoformat(),
         }
         if record.exc_info is not None:
@@ -104,6 +102,5 @@ class JSON(logging.Formatter):
 
 
 class NonErrorFilter(logging.Filter):
-    @override
     def filter(self, record: logging.LogRecord) -> bool | logging.LogRecord:
         return record.levelno <= logging.ERROR
