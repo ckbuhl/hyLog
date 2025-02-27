@@ -1,51 +1,47 @@
-import atexit
 import logging.config
 import logging.handlers
 
-from multiprocessing import Queue
 from pathlib import Path
+from typing import cast
 
+from hylog import config
 from hylog import handlers
+from hylog import logger
 
 
-def _close_logger(logger_name: str) -> None:
-    logger = logging.getLogger(logger_name)
-    logger.debug(f"Logging Complete...{'\n' * 2}")
-
-
-def _setup_handlers(
-    output_dir: Path, name: str, stdout_level: str | None = None
-) -> None:
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-
-    stream_handler = handlers.StandardOutput()
-    if stdout_level:
-        stream_handler.setLevel(getattr(logging, stdout_level.upper()))
-    file_last_handler = handlers.FileLastRun(output_dir / f"{name}_last.log")
-    file_rotating_handler = handlers.FileRotating(output_dir / f"{name}_rotating.log")
-    json_handler = handlers.JSONHandler(output_dir / f"{name}_json.jsonl")
-
-    log_queue = Queue(-1)
-    queue_handler = handlers.QueueHandler(log_queue)
-    logger.addHandler(queue_handler)
-
-    queue_listener = handlers.QueueListener(
-        log_queue,
-        *[stream_handler, file_last_handler, file_rotating_handler, json_handler],
-    )
-    queue_listener.start()
-    atexit.register(queue_listener.stop)
-    atexit.register(_close_logger, name)
-
-    logger.debug("Logging Started...")
+Config = config.Config()
 
 
 def get_app_logger(
-    name: str,
+    app_name: str,
     output_dir: str | Path,
     stdout_level: str | None = None,
-) -> logging.Logger:
-    _setup_handlers(Path(output_dir), name, stdout_level)
+) -> logger._AppLogger:
+    """Create a logger for the application with the given name and output directory."""
+    # TODO: Add support for showing path to module rather than just the name?
+    # TODO: Add support to disable file logging
+    Config.app.name = app_name
+    Config.app.output_dir = Path(output_dir)
 
-    return logging.getLogger(name)
+    logging.setLoggerClass(logger._AppLogger)
+
+    # Configure all handlers and logging levels into a QueueHandler
+    handlers.setup_handlers(
+        output_dir=Path(output_dir), name=app_name, stdout_level=stdout_level
+    )
+
+    Config.app.initialized = True
+
+    return cast(logger._AppLogger, logging.getLogger(app_name))
+
+def get_logger(
+    name: str | None = None,
+) -> logger._AppLogger:
+    """Create a logger for the application with the given name and output directory."""
+    if not Config.app.initialized:
+        raise RuntimeError("App logger must be initialized before creating a logger")
+
+    elif name == Config.app.name or name is None:
+        return cast(logger._AppLogger ,logging.getLogger(Config.app.name))
+    else:
+        return cast(logger._AppLogger ,logging.getLogger(Config.app.name).getChild(name))
