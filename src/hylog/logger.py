@@ -26,25 +26,28 @@ class _AppLogger(logging.Logger):
                 signature = inspect.signature(_func)
                 func_line = inspect.getsourcelines(_func)[1]
 
-                self.log(_level, f"Function: {func_path} (line {func_line})")
+                # Change the stacklevel to 2 so the log message has the module and lineno of the function call, not the decorator.
+                log = functools.partial(self.log, stacklevel = 2)
+
+                log(_level, f"Function: {func_path} (line {func_line})")
 
                 # Map the *args and **kwargs to parameter names
                 bound_arguments = signature.bind(*args, **kwargs)
                 bound_arguments.apply_defaults()
 
-                self.log(_level, f"{_func.__name__}() arguments:")
+                log(_level, f"{_func.__name__}() arguments:")
 
                 for name, value in bound_arguments.arguments.items():
-                    self.log(_level, f"{name} = {value}")
+                    log(_level, f"{name} = {value}")
 
                 args_repr = [f"{a!r}" for a in args]
                 kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
                 signature = ", ".join(args_repr + kwargs_repr)
-                self.log(_level, f"Calling: {_func.__name__}({signature})")
+                log(_level, f"Calling: {_func.__name__}({signature})")
 
                 value = _func(*args, **kwargs)
-                self.log(_level, f"{_func.__name__}() returned:")
-                self.log(_level, f"{value!r}")
+                log(_level, "Returned:")
+                log(_level, f"{value!r}")
 
                 return value
 
@@ -67,8 +70,10 @@ class _AppLogger(logging.Logger):
                 value = func(*args, **kwargs)
                 end_time = time.perf_counter()
                 total_time = end_time - start_time
-                # self.log(_level, f"{func.__name__}() returned {value!r}")
-                self.log(
+
+                # Change the stacklevel to 2 so the log message has the module and lineno of the function call, not the decorator.
+                log = functools.partial(self.log, stacklevel = 2)
+                log(
                     _level, f"{total_time:.4f} seconds for Function {func.__name__}"
                 )
 

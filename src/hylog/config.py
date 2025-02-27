@@ -1,5 +1,12 @@
 import logging
 
+from pathlib import Path
+
+
+class AppConfig:
+    name: str | None = None
+    output_dir: Path | None = None
+    initialized: bool = False
 
 class FileConfig:
     level: int = logging.DEBUG
@@ -16,3 +23,4 @@ class StreamConfig:
 class Config:
     file: FileConfig = FileConfig()
     stream: StreamConfig = StreamConfig()
+    app: AppConfig = AppConfig()
