@@ -113,6 +113,7 @@ class QueueListener(logging.handlers.QueueListener):
 
 def setup_handlers(*args, **kwargs) -> None:
     """Instantiae and add all handlers to the QueueListener/Handler and configure logger."""
+    # TODO: Add support to disable file logging
     name = kwargs.get("name", "default_logger")
     if name is None:
         raise ValueError("Logger name must be provided")
@@ -136,6 +137,9 @@ def setup_handlers(*args, **kwargs) -> None:
         log_queue,
         *[handler(*args, **kwargs) for handler in handler_classes],
     )
+
+    logging.handlers
+
 
     queue_listener.start()
     atexit.register(queue_listener.stop)

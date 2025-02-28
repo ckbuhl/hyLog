@@ -2,11 +2,18 @@ import time
 
 from pathlib import Path
 
+import module
+
 from hylog import get_app_logger
 
 
+OUTPUT_DIR = Path.cwd() / "logs"
+
+log = get_app_logger(OUTPUT_DIR, stdout_level="DEBUG")
+
+
 def test_logger(name: str, output_dir: str | Path) -> None:
-    log = get_app_logger(name, output_dir, stdout_level="DEBUG")
+    # log = get_app_logger(name, output_dir, stdout_level="DEBUG")
 
     @log.func()
     def test_func_decorator(arg1: str, *, kwarg1: int) -> str:
@@ -16,7 +23,7 @@ def test_logger(name: str, output_dir: str | Path) -> None:
     def test_perf_decorator() -> None:
         time.sleep(1)
 
-    def test_logger() -> None:
+    def test_log_messages() -> None:
         log.debug("DEBUG message")
         log.debug("DEBUG message with extra", extra={"extra_key": "extra_value"})
         log.info("INFO message")
@@ -32,11 +39,12 @@ def test_logger(name: str, output_dir: str | Path) -> None:
 
         except ZeroDivisionError as e:
             log.exception("Exception occurred", exc_info=e)
-
+    test_log_messages()
     test_func_decorator("test", kwarg1=42)
     test_perf_decorator()
 
-    
+    module.test_module_loggers()
+
 
 
 

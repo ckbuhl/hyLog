@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class AppConfig:
-    name: str | None = None
+    name: str = "hyLog"
     output_dir: Path | None = None
     initialized: bool = False
 
