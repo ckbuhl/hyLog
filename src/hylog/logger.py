@@ -6,12 +6,20 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from hylog import config
+
+
+Config = config.Config()
+
 
 class _AppLogger(logging.Logger):
     """Custom logger class that adds decorator functionality on top of the standard logger."""
-
+    def __init__(self, name: str, level: int = logging.NOTSET) -> None:
+        super().__init__(name, level)
+        
     def func(self, level: str | None = None) -> Callable[..., Any]:
         """A decorator that logs the function inputs and outputs at the given level."""
+        _logger = logging.getLogger(Config.app.name)
         # Set the level to the log_level if it exists otherwise use the logger.getLevelName
         # to retrieve the corresponding int value for the log level
         _level = getattr(logging, level.upper()) if level else self.level
@@ -27,7 +35,7 @@ class _AppLogger(logging.Logger):
                 func_line = inspect.getsourcelines(_func)[1]
 
                 # Change the stacklevel to 2 so the log message has the module and lineno of the function call, not the decorator.
-                log = functools.partial(self.log, stacklevel = 2)
+                log = functools.partial(_logger.log, stacklevel=2)
 
                 log(_level, f"Function: {func_path} (line {func_line})")
 
@@ -60,6 +68,8 @@ class _AppLogger(logging.Logger):
         # Set the level to the log_level if it exists otherwise use the logger.getLevelName
         # to retrieve the corresponding int value for the log level
         _level = getattr(logging, level.upper()) if level else self.level
+        logger = logging.getLogger(Config.app.name)
+
 
         def decorator(func: Callable[..., Any]) -> Any:
             """Print the function signature and return value"""
@@ -72,10 +82,8 @@ class _AppLogger(logging.Logger):
                 total_time = end_time - start_time
 
                 # Change the stacklevel to 2 so the log message has the module and lineno of the function call, not the decorator.
-                log = functools.partial(self.log, stacklevel = 2)
-                log(
-                    _level, f"{total_time:.4f} seconds for Function {func.__name__}"
-                )
+                log = functools.partial(logger.log, stacklevel=2)
+                log(_level, f"{total_time:.4f} seconds for Function {func.__name__}")
 
                 return value
 

@@ -9,11 +9,11 @@ from hylog import get_app_logger
 
 OUTPUT_DIR = Path.cwd() / "logs"
 
-log = get_app_logger(OUTPUT_DIR, stdout_level="DEBUG")
+log = get_app_logger(output_dir=OUTPUT_DIR, stdout_level="DEBUG")
+# log = get_app_logger(output_dir=OUTPUT_DIR)
 
 
 def test_logger(name: str, output_dir: str | Path) -> None:
-    # log = get_app_logger(name, output_dir, stdout_level="DEBUG")
 
     @log.func()
     def test_func_decorator(arg1: str, *, kwarg1: int) -> str:
@@ -39,6 +39,7 @@ def test_logger(name: str, output_dir: str | Path) -> None:
 
         except ZeroDivisionError as e:
             log.exception("Exception occurred", exc_info=e)
+
     test_log_messages()
     test_func_decorator("test", kwarg1=42)
     test_perf_decorator()

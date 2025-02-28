@@ -1,12 +1,16 @@
 import logging
 
 from pathlib import Path
+from typing import ClassVar
 
+
+DEFAULT_NAME = "hyLog"
 
 class AppConfig:
-    name: str = "hyLog"
+    name: str = DEFAULT_NAME
     output_dir: Path | None = None
     initialized: bool = False
+    seen_names: ClassVar[set[str]] = set(DEFAULT_NAME)
 
 class FileConfig:
     level: int = logging.DEBUG

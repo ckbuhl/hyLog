@@ -11,6 +11,7 @@ from hylog import formatters
 
 Config = config.Config()
 
+
 # File handlers
 def _format_output_file_path(*args, **kwargs) -> tuple[Path, str]:
     """Retrieve and validate that the user passed a name and output directory.
@@ -30,7 +31,12 @@ def _format_output_file_path(*args, **kwargs) -> tuple[Path, str]:
 
     return Path(output_dir), name
 
-class FileLastRun(logging.FileHandler):
+
+class LogHandler:
+    """Base class for all log handlers."""
+
+
+class FileLastRun(LogHandler, logging.FileHandler):
     _formatter: logging.Formatter = formatters.Detailed()
     _mode: str = "w"
 
@@ -49,27 +55,24 @@ class FileLastRun(logging.FileHandler):
         self.setFormatter(self._formatter)
 
 
-class FileRotating(logging.handlers.RotatingFileHandler):
+class FileRotating(LogHandler, logging.handlers.RotatingFileHandler):
     _formatter: logging.Formatter = formatters.Detailed()
-    # _level: int = logging.DEBUG
-    # _suffix = "_rotating.log"
-
-    _max_bytes: int = 3_000_000
-    _backup_count: int = 3
 
     def __init__(self, *args, **kwargs) -> None:
         output_dir, name = _format_output_file_path(*args, **kwargs)
         file_path = output_dir / (name + Config.file.rotating_suffix)
 
         super().__init__(
-            file_path, maxBytes=self._max_bytes, backupCount=self._backup_count
+            file_path,
+            maxBytes=Config.file.max_bytes,
+            backupCount=Config.file.backup_count,
         )
 
         self.setLevel(Config.file.level)
         self.setFormatter(self._formatter)
 
 
-class JSONHandler(logging.handlers.RotatingFileHandler):
+class JSONHandler(LogHandler, logging.handlers.RotatingFileHandler):
     _formatter: logging.Formatter = formatters.JSON()
 
     def __init__(self, *args, **kwargs) -> None:
@@ -77,7 +80,9 @@ class JSONHandler(logging.handlers.RotatingFileHandler):
         file_path = output_dir / (name + Config.file.json_suffix)
 
         super().__init__(
-            file_path, maxBytes=Config.file.max_bytes, backupCount=Config.file.backup_count
+            file_path,
+            maxBytes=Config.file.max_bytes,
+            backupCount=Config.file.backup_count,
         )
 
         self.setLevel(Config.file.level)
@@ -85,7 +90,7 @@ class JSONHandler(logging.handlers.RotatingFileHandler):
 
 
 # Stream handlers
-class StandardOutput(logging.StreamHandler):
+class StandardOutput(LogHandler, logging.StreamHandler):
     _formatter: logging.Formatter = formatters.Simple()
 
     def __init__(self, *args, **kwargs) -> None:
@@ -101,12 +106,12 @@ class StandardOutput(logging.StreamHandler):
 
 
 # Queue handlers
-class QueueHandler(logging.handlers.QueueHandler):
+class QueueHandler(LogHandler, logging.handlers.QueueHandler):
     def __init__(self, queue: Queue) -> None:
         super().__init__(queue)
 
 
-class QueueListener(logging.handlers.QueueListener):
+class QueueListener(LogHandler, logging.handlers.QueueListener):
     def __init__(self, queue, *handlers: logging.Handler) -> None:
         super().__init__(queue, *handlers, respect_handler_level=True)
 
@@ -114,32 +119,39 @@ class QueueListener(logging.handlers.QueueListener):
 def setup_handlers(*args, **kwargs) -> None:
     """Instantiae and add all handlers to the QueueListener/Handler and configure logger."""
     # TODO: Add support to disable file logging
-    name = kwargs.get("name", "default_logger")
-    if name is None:
-        raise ValueError("Logger name must be provided")
+    if kwargs.get("name") is None:
+        raise ValueError("Logger name must be provided.")
 
-    logger = logging.getLogger(name)
+    logger = logging.getLogger(kwargs["name"])
+
+    # Set the logger level to the highest level of all handlers
     logger.setLevel(logging.DEBUG)
 
     log_queue = Queue(-1)
+
     queue_handler = QueueHandler(log_queue)
 
     logger.addHandler(queue_handler)
 
-    handler_classes = [
-        StandardOutput,
-        FileLastRun,
-        FileRotating,
-        JSONHandler,
+    handlers: list[logging.Handler] = [
+        StandardOutput(*args, **kwargs),
     ]
 
+    # Add file handlers if the user specified an output directory
+    if kwargs.get("output_dir") is not None:
+        handlers.extend(
+            [
+                FileLastRun(*args, **kwargs),
+                FileRotating(*args, **kwargs),
+                JSONHandler(*args, **kwargs),
+            ]
+        )
+
+    # Create a QueueListener to listen to the queue and pass messages to the handlers
     queue_listener = QueueListener(
         log_queue,
-        *[handler(*args, **kwargs) for handler in handler_classes],
+        *handlers,
     )
-
-    logging.handlers
-
 
     queue_listener.start()
     atexit.register(queue_listener.stop)

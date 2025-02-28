@@ -1,7 +1,7 @@
 from hylog import get_logger
 
 
-log = get_logger(__name__)
+log = get_logger()
 
 
 def test_module_logger() -> None:
@@ -24,11 +24,11 @@ def test_module_logger_with_debug_decorator(arg1: str, *, kwarg1: int) -> str:
 @log.perf()
 def test_module_logger_with_perf_decorator() -> None:
     import time
-    time.sleep(1)
+    time.sleep(2)
 
 
 
 def test_module_loggers() -> None:
     test_module_logger()
-    test_module_logger_with_debug_decorator("test", kwarg1=42)
+    test_module_logger_with_debug_decorator("test_module", kwarg1=42)
     test_module_logger_with_perf_decorator()
