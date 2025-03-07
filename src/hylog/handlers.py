@@ -12,24 +12,29 @@ from hylog import formatters
 Config = config.Config()
 
 
-# File handlers
-def _format_output_file_path(*args, **kwargs) -> tuple[Path, str]:
+def _format_output_dir_path(*args, **kwargs) -> Path:
     """Retrieve and validate that the user passed a name and output directory.
 
     Returns the path to the output file.
     """
     output_dir = kwargs.get("output_dir")
-    name = kwargs.get("name")
 
-    if output_dir is None or name is None:
-        raise ValueError(
-            f"output_dir and name must be provided. Got {output_dir=} and {name=}"
-        )
+    if output_dir is None:
+        raise ValueError(f"output_dir and name must be provided. Got {output_dir=}")
 
     if not Path(output_dir).is_dir():
         raise FileNotFoundError(f"Output directory {output_dir} does not exist.")
 
-    return Path(output_dir), name
+    return Path(output_dir)
+
+
+def _create_file_path(output_dir: Path, file_name: str | None, default: str) -> Path:
+    """Create a file path from the output directory and file name."""
+    # TODO: Merge this function with _format_output_dir_path?
+
+    file_name = default if file_name is None else f"{file_name}_{default}"
+
+    return output_dir / file_name
 
 
 class LogHandler:
@@ -46,8 +51,11 @@ class FileLastRun(LogHandler, logging.FileHandler):
 
         The file is overwritten each time the application is run.
         """
-        output_dir, name = _format_output_file_path(*args, **kwargs)
-        file_path = output_dir / (name + Config.file.last_suffix)
+        file_path = _create_file_path(
+            _format_output_dir_path(*args, **kwargs),
+            kwargs.get("file_name"),
+            Config.file.last_file_name,
+        )
 
         super().__init__(file_path, mode=self._mode)
 
@@ -59,8 +67,11 @@ class FileRotating(LogHandler, logging.handlers.RotatingFileHandler):
     _formatter: logging.Formatter = formatters.Detailed()
 
     def __init__(self, *args, **kwargs) -> None:
-        output_dir, name = _format_output_file_path(*args, **kwargs)
-        file_path = output_dir / (name + Config.file.rotating_suffix)
+        file_path = _create_file_path(
+            _format_output_dir_path(*args, **kwargs),
+            kwargs.get("file_name"),
+            Config.file.rotating_file_name,
+        )
 
         super().__init__(
             file_path,
@@ -76,8 +87,11 @@ class JSONHandler(LogHandler, logging.handlers.RotatingFileHandler):
     _formatter: logging.Formatter = formatters.JSON()
 
     def __init__(self, *args, **kwargs) -> None:
-        output_dir, name = _format_output_file_path(*args, **kwargs)
-        file_path = output_dir / (name + Config.file.json_suffix)
+        file_path = _create_file_path(
+            _format_output_dir_path(*args, **kwargs),
+            kwargs.get("file_name"),
+            Config.file.json_file_name,
+        )
 
         super().__init__(
             file_path,
@@ -128,11 +142,11 @@ def setup_handlers(*args, **kwargs) -> None:
     logger.setLevel(logging.DEBUG)
 
     log_queue = Queue(-1)
-
     queue_handler = QueueHandler(log_queue)
 
     logger.addHandler(queue_handler)
 
+    # Create a list of handlers to add to the QueueListener
     handlers: list[logging.Handler] = [
         StandardOutput(*args, **kwargs),
     ]

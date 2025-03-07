@@ -17,9 +17,9 @@ class FileConfig:
     max_bytes: int = 3_000_000
     backup_count: int = 3
     mode = "w"
-    rotating_suffix = "_rotating.log"
-    last_suffix = "_last.log"
-    json_suffix = "_json.jsonl"
+    rotating_file_name = "rotating.log"
+    last_file_name = "last.log"
+    json_file_name = "json.jsonl"
 
 class StreamConfig:
     level: int = logging.WARNING

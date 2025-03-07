@@ -13,7 +13,7 @@ log = get_app_logger(output_dir=OUTPUT_DIR, stdout_level="DEBUG")
 # log = get_app_logger(output_dir=OUTPUT_DIR)
 
 
-def test_logger(name: str, output_dir: str | Path) -> None:
+def test_logger() -> None:
 
     @log.func()
     def test_func_decorator(arg1: str, *, kwarg1: int) -> str:
@@ -50,4 +50,4 @@ def test_logger(name: str, output_dir: str | Path) -> None:
 
 
 if __name__ == "__main__":
-    test_logger("hyLog", Path.cwd() / "logs")
+    test_logger()
