@@ -5,6 +5,32 @@ import logging
 from typing import ClassVar
 
 
+TERM_COLORS = {
+    "black": "\033[30m",
+    "gray": "\033[1;30m",
+    "white": "\033[1;37m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "yellow": "\033[33m",
+}
+
+LEVEL_COLORS = {
+    "grey": "\x1b[38;20m",
+    "yellow": "\x1b[33;20m",
+    "red": "\x1b[31;20m",
+    "bold_red": "\x1b[31;1m",
+    "reset": "\x1b[0m",
+}
+
+TERM_ATTRS = {
+    "reset": "\033[0m",
+    "bold": "\033[1m",
+    "underline": "\033[4m",
+    "blink": "\033[5m",
+    "reverse": "\033[7m",
+    "conceal": "\033[8m",
+}
+
 LOG_RECORD_BUILTIN_ATTRS = {
     "args",
     "asctime",
@@ -33,19 +59,29 @@ LOG_RECORD_BUILTIN_ATTRS = {
 
 
 class Simple(logging.Formatter):
-    _fmt: str = "%(asctime)s - [%(levelname)-8s] %(module)s:%(lineno)03d | %(message)s"
-    _datefmt: str = "T%H:%M:%S"
-
     def __init__(self) -> None:
-        super().__init__(fmt=self._fmt, datefmt=self._datefmt)
+        super().__init__(
+            fmt="%(asctime)s - [%(levelname)-8s] %(module)s:%(lineno)03d | %(message)s",
+            datefmt="T%H:%M:%S",
+        )
+
+
+class TermColor(logging.Formatter):
+    _colors: ClassVar[dict[str, str]] = {
+        "DEBUG": TERM_COLORS["gray"],
+        "INFO": TERM_COLORS["white"],
+        "WARNING": TERM_COLORS["yellow"],
+        "ERROR": TERM_COLORS["red"],
+        "CRITICAL": TERM_COLORS["red"],
+    }
 
 
 class Detailed(logging.Formatter):
-    _fmt: str = "%(asctime)s [%(levelname)-8s]  %(pathname)s:%(lineno)03d %(module)s %(funcName)s | %(message)s"
-    _datefmt: str = "%Y-%m-%dT%H:%M:%S"
-
     def __init__(self) -> None:
-        super().__init__(fmt=self._fmt, datefmt=self._datefmt)
+        super().__init__(
+            fmt="%(asctime)s [%(levelname)-8s]  %(pathname)s:%(lineno)03d %(module)s %(funcName)s | %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%S",
+        )
 
 
 class JSON(logging.Formatter):

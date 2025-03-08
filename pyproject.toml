@@ -1,16 +1,13 @@
 [project]
 name = "hylog"
 version = "0.1.7"
-description = "Add your description here"
+description = "Python logging utility with structured logging and log rotation"
 readme = "README.md"
 authors = [
     { name = "ckbuhl", email = "ckbuhl@gmail.com" }
 ]
 requires-python = ">=3.10"
 dependencies = []
-
-[project.scripts]
-hylog = "hylog:main"
 
 
 [dependency-groups]
