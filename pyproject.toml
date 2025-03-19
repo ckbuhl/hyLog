@@ -1,7 +1,7 @@
 [project]
 name = "hylog"
 version = "0.1.7"
-description = "Add your description here"
+description = "Python logging utility"
 readme = "README.md"
 authors = [
     { name = "ckbuhl", email = "ckbuhl@gmail.com" }
@@ -9,8 +9,8 @@ authors = [
 requires-python = ">=3.10"
 dependencies = []
 
-[project.scripts]
-hylog = "hylog:main"
+# [project.scripts]
+# hylog = "hylog:main"
 
 
 [dependency-groups]

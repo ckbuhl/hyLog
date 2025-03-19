@@ -9,8 +9,7 @@ __pycache__/
 *.so
 
 # Log files
-/logs/*.log
-/logs/*.jsonl
+logs/*
 
 # Distribution / packaging
 .Python
