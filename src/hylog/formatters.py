@@ -107,7 +107,7 @@ class SimpleColor(logging.Formatter):
         if self.usesTime():
             record.asctime = self.formatTime(record, self.datefmt)
         s = self.formatMessage(record)
-        s = s.replace(levelname, levelname_colored, count=1)
+        s = s.replace(levelname, levelname_colored, 1)
 
         if record.exc_info:  # noqa: SIM102
             # Cache the traceback text to avoid converting it multiple times
@@ -189,5 +189,5 @@ class JSON(logging.Formatter):
 
 
 class NonErrorFilter(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool | logging.LogRecord:
+    def filter(self, record: logging.LogRecord) -> bool:
         return record.levelno <= logging.ERROR
