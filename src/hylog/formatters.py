@@ -5,6 +5,37 @@ import logging
 from typing import ClassVar
 
 
+TERM_COLORS = {
+    "default": "\033[0m",
+    "black": "\033[30m",
+    "gray": "\033[1;30m",
+    "light_gray": "\033[37m",
+    "white": "\033[1;37m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "blue": "\033[34m",
+    "yellow": "\033[33m",
+}
+
+LEVEL_COLORS = {
+    "grey": "\x1b[38;20m",
+    "green": "\x1b[32;20m",
+    "yellow": "\x1b[33;20m",
+    "orange": "\x1b[38;5;208m",
+    "red": "\x1b[31;20m",
+    "bold_red": "\x1b[31;1m",
+    "reset": "\x1b[0m",
+}
+
+TERM_ATTRS = {
+    "reset": "\033[0m",
+    "bold": "\033[1m",
+    "underline": "\033[4m",
+    "blink": "\033[5m",
+    "reverse": "\033[7m",
+    "conceal": "\033[8m",
+}
+
 LOG_RECORD_BUILTIN_ATTRS = {
     "args",
     "asctime",
@@ -33,19 +64,75 @@ LOG_RECORD_BUILTIN_ATTRS = {
 
 
 class Simple(logging.Formatter):
-    _fmt: str = "%(asctime)s - [%(levelname)-8s] %(module)s:%(lineno)03d | %(message)s"
-    _datefmt: str = "T%H:%M:%S"
+    def __init__(self) -> None:
+        super().__init__(
+            fmt="%(asctime)s - [%(levelname)-8s] %(module)s:%(lineno)03d | %(message)s",
+            datefmt="T%H:%M:%S",
+        )
+
+
+class SimpleColor(logging.Formatter):
+    _default_color: ClassVar[str] = TERM_COLORS["black"]
 
     def __init__(self) -> None:
-        super().__init__(fmt=self._fmt, datefmt=self._datefmt)
+        super().__init__(
+            fmt=f"{self._default_color}%(asctime)s - [%(levelname)-8s] %(module)s:%(lineno)03d   %(message)s{TERM_ATTRS['reset']}",
+            datefmt="T%H:%M:%S",
+        )
+
+    def format(self, record: logging.LogRecord) -> str:
+        levelname = record.levelname
+        color = LEVEL_COLORS["grey"]
+
+        if levelname == "DEBUG":
+            color = LEVEL_COLORS["green"]
+        elif levelname == "INFO":
+            color = LEVEL_COLORS["yellow"]
+        elif levelname == "WARNING":
+            color = LEVEL_COLORS["orange"]
+        elif levelname == "ERROR":
+            color = LEVEL_COLORS["red"]
+        elif levelname == "CRITICAL":
+            color = LEVEL_COLORS["bold_red"]
+
+        levelname_colored = f"{color}{levelname}{self._default_color}"
+        # timestamp = dt.datetime.fromtimestamp(record.created).strftime(self.datefmt or "T%H:%M:%S")
+        # record.asctime = f"{TERM_COLORS['black']}{timestamp}{TERM_ATTRS['reset']}"
+        # record.filename = f"{TERM_COLORS['black']}{record.filename}{TERM_ATTRS['reset']}"
+        # record.message = f"{TERM_COLORS['gray']}{record.getMessage()}{TERM_ATTRS['reset']}"
+
+        record.message = record.getMessage()
+        record.message = f"{TERM_COLORS['default']}{record.message}{self._default_color}"
+
+        if self.usesTime():
+            record.asctime = self.formatTime(record, self.datefmt)
+        s = self.formatMessage(record)
+        s = s.replace(levelname, levelname_colored, count=1)
+
+        if record.exc_info:  # noqa: SIM102
+            # Cache the traceback text to avoid converting it multiple times
+            # (it's constant anyway)
+            if not record.exc_text:
+                record.exc_text = self.formatException(record.exc_info)
+        if record.exc_text:
+            if s[-1:] != "\n":
+                s = s + "\n"
+            s = s + record.exc_text
+        if record.stack_info:
+            if s[-1:] != "\n":
+                s = s + "\n"
+            s = s + self.formatStack(record.stack_info)
+        return s
+
+        # return super().format(record)
 
 
 class Detailed(logging.Formatter):
-    _fmt: str = "%(asctime)s [%(levelname)-8s]  %(pathname)s:%(lineno)03d %(module)s %(funcName)s | %(message)s"
-    _datefmt: str = "%Y-%m-%dT%H:%M:%S%z"
-
     def __init__(self) -> None:
-        super().__init__(fmt=self._fmt, datefmt=self._datefmt)
+        super().__init__(
+            fmt="%(asctime)s [%(levelname)-8s]  %(pathname)s:%(lineno)03d %(module)s %(funcName)s | %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%S",
+        )
 
 
 class JSON(logging.Formatter):

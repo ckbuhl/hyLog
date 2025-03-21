@@ -108,6 +108,9 @@ class StandardOutput(LogHandler, logging.StreamHandler):
     _formatter: logging.Formatter = formatters.Simple()
 
     def __init__(self, *args, **kwargs) -> None:
+        if sys.platform == "darwin":
+            StandardOutput._formatter = formatters.SimpleColor()
+            
         super().__init__(stream=sys.stdout)
         user_level = kwargs.get("stdout_level")
         if user_level is not None:

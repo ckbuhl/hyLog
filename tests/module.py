@@ -17,15 +17,17 @@ def test_module_logger() -> None:
     except ZeroDivisionError as e:
         log.exception("Exception occurred in module", exc_info=e)
 
+
 @log.func()
 def test_module_logger_with_debug_decorator(arg1: str, *, kwarg1: int) -> str:
     return f"arg1: {arg1}, kwarg1: {kwarg1}"
 
+
 @log.perf()
 def test_module_logger_with_perf_decorator() -> None:
     import time
-    time.sleep(2)
 
+    time.sleep(2)
 
 
 def test_module_loggers() -> None:
